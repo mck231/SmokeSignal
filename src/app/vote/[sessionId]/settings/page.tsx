@@ -24,21 +24,21 @@ async function getVotingSession(sessionId: string) {
 export default async function VoteSettingsPage({
   params
 }: {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }) {
-  const { sessionId } = params;
+  const session = (await params).sessionId;
 
-  const sessionData = await getVotingSession(sessionId);
+  const sessionData = await getVotingSession(session);
   if (!sessionData) {
     notFound(); // Triggers Next.js 404 page
   }
 
   return (
     <main className="p-4">
-      <h1 className="text-2xl font-bold mb-4">Edit Session {sessionId}</h1>
+      <h1 className="text-2xl font-bold mb-4">Edit Session {session}</h1>
       <VotingSessionForm
         isNew={false}
-        sessionId={sessionId}
+        sessionId={session}
         initialData={sessionData}
       />
     </main>

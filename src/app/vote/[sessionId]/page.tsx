@@ -4,16 +4,14 @@ import VotingClient from "./VotingClient";
 
 export default async function VotingSessionPage({
   params,
-}: {
-  params: { sessionId: string };
-}) {
-  // Possibly fetch session details
+}: {params: Promise<{ sessionId: string }>}) {  
+  const session = (await params).sessionId;
   return (
     <main className="p-6">
       <h1 className="text-2xl font-bold mb-4">
-        Voting Session {params.sessionId}
+        Voting Session {session}
       </h1>
-      <VotingClient sessionId={params.sessionId} />
+      <VotingClient sessionId={session} />
     </main>
   );
 }
