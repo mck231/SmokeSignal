@@ -26,15 +26,7 @@ function GlobalHeader() {
       <nav className="mx-auto max-w-5xl flex items-center justify-between p-4">
         <div className="font-semibold text-lg">
           <Link href="/">Smoke Signal</Link>
-        </div>
-        <div>
-          <Link
-            href="/vote"
-            className="text-blue-600 hover:underline"
-          >
-            Go to Votes
-          </Link>
-        </div>
+        </div>        
       </nav>
     </header>
   )

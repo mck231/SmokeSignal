@@ -29,7 +29,6 @@ async function getAllVotingSessions(): Promise<VotingSession[]> {
 
 export default async function VoteDashboardPage() {
   const sessions = await getAllVotingSessions()
-
   return (
     <main className="min-h-screen w-full bg-gray-50 p-6">
       {/* A responsive container that grows up to a certain max width */}
@@ -39,7 +38,7 @@ export default async function VoteDashboardPage() {
 
           {/* Button to create a new voting session */}
           <Link href="/vote/new">
-            <Button variant="default">New Voting Session</Button>
+            <Button className="bg-green-100 text-green-800 hover:bg-green-300">New Voting Session</Button>
           </Link>
         </header>
 
@@ -55,25 +54,25 @@ export default async function VoteDashboardPage() {
         >
           {sessions.length > 0 ? (
             sessions.map((session) => (
-              <div
+                <div
                 key={session.id}
-                className="rounded-md border border-gray-200 bg-white p-4 shadow-sm"
+                className="
+                  rounded-md border border-gray-200 bg-white p-4 shadow-sm
+                  flex flex-col justify-between
+                "
               >
-                <h2 className="text-xl font-semibold text-gray-800">
-                  {session.title}
-                </h2>
-                <p className="text-sm text-gray-600">
-                  Status: <span className="capitalize">{session.status}</span>
-                </p>
-                <p className="text-sm text-gray-600">
-                  Created At: {session.createdAt}
-                </p>
-
-                <Link
-                  href={`/vote/${session.id}`}
-                  className="mt-3 inline-block text-sm font-medium text-blue-600 hover:underline"
-                >
-                  View Session
+                <div>
+                  <h2 className="text-xl font-semibold text-gray-800">
+                    {session.title}
+                  </h2>
+                  <p>Status: {session.status}</p>
+                  <p>Created At: {session.createdAt}</p>
+                </div>
+              
+                <Link href={`/vote/${session.id}`} className="mt-4">
+                  <Button className="bg-blue-100 text-blue-800 hover:bg-blue-300">
+                    View Session
+                  </Button>
                 </Link>
               </div>
             ))
