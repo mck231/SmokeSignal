@@ -28,12 +28,12 @@ function GlobalHeader() {
           <Link href="/">Smoke Signal</Link>
         </div>
         <div>
-          <a
+          <Link
             href="/vote"
             className="text-blue-600 hover:underline"
           >
             Go to Votes
-          </a>
+          </Link>
         </div>
       </nav>
     </header>
