@@ -2,6 +2,7 @@ import type { Metadata } from "next"
 import { Geist, Geist_Mono } from "next/font/google"
 import "./globals.css"
 import Link from "next/link"
+import { Button } from "@/components/ui/button"
 
 // Example fonts
 const geistSans = Geist({
@@ -27,6 +28,18 @@ function GlobalHeader() {
         <div className="font-semibold text-lg">
           <Link href="/">Smoke Signal</Link>
         </div>        
+        <div>
+          <Link className="m-2" href="/auth/login">
+            <Button className="bg-blue-100 text-blue-800 hover:bg-blue-300">
+              Login
+            </Button>
+          </Link>
+          <Link className="m-2" href="/auth/register">
+          <Button className="bg-blue-100 text-blue-800 hover:bg-blue-300">
+              Register
+            </Button>
+          </Link>
+          </div>
       </nav>
     </header>
   )

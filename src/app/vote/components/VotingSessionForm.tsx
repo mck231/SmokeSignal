@@ -1,150 +1,174 @@
-"use client";
+"use client"
 
-import { useState, FormEvent } from 'react';
-import { useRouter } from 'next/navigation';
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm, useFieldArray } from "react-hook-form"
+import { z } from "zod"
 
-type SessionData = {
-  title: string;
-  startDate: string;
-  endDate: string;
-  options: string[];
-};
+import { Button } from "@/components/ui/button"
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form"
+import { Input } from "@/components/ui/input"
 
-type VotingSessionFormProps = {
-  isNew: boolean;
-  sessionId?: string;        // Provided only if isNew=false
-  initialData?: SessionData; // For editing existing session
-};
+type VotingSessionFormValues = {
+  title: string
+  description?: string
+  startDate: string
+  endDate: string
+  options: string[]
+}
 
-export function VotingSessionForm({
-  isNew,
-  sessionId,
-  initialData
-}: VotingSessionFormProps) {
-  const router = useRouter();
+const formSchema = z.object({
+  title: z.string().min(2, {
+    message: "Title must be at least 2 characters.",
+  }),
+  description: z.string().optional(),
+  startDate: z.string().nonempty({
+    message: "Start date is required.",
+  }),
+  endDate: z.string().nonempty({
+    message: "End date is required.",
+  }),
+  options: z.array(z.string().min(1, {
+    message: "Option must not be empty.",
+  })).min(1, {
+    message: "At least one option is required.",
+  }),
+})
 
-  // Pre-populate state if editing
-  const [title, setTitle] = useState(initialData?.title || '');
-  const [startDate, setStartDate] = useState(initialData?.startDate || '');
-  const [endDate, setEndDate] = useState(initialData?.endDate || '');
-  const [options, setOptions] = useState<string[]>(
-    initialData?.options || [''] // Start with one empty string if new
-  );
+const VotingSessionForm: React.FC = () => {
+  const form = useForm({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      title: "",
+      description: "",
+      startDate: "",
+      endDate: "",
+      options: [""],
+    },
+  })
 
-  // Handlers for dynamic options array
-  const handleAddOption = () => setOptions((prev) => [...prev, '']);
-  const handleRemoveOption = (index: number) => {
-    setOptions((prev) => prev.filter((_, i) => i !== index));
-  };
-  const handleOptionChange = (index: number, value: string) => {
-    setOptions((prev) => {
-      const updated = [...prev];
-      updated[index] = value;
-      return updated;
-    });
-  };
+  const { fields, append, remove } = useFieldArray({
+    control: form.control,
+    name: "options",
+  })
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-
-    const dataToSave: SessionData = {
-      title,
-      startDate,
-      endDate,
-      options
-    };
-
-    // Here you’d do an API call or a server action
-    if (isNew) {
-      // POST /api/sessions or similar
-      console.log('Creating new session...', dataToSave);
-      // Suppose we get a new ID from the server -> redirect to /vote/<newId> or /vote
-    } else {
-      // PATCH /api/sessions/[sessionId] or similar
-      console.log(`Updating session ${sessionId}...`, dataToSave);
+  const onSubmit = async (values: VotingSessionFormValues) => {
+    try {
+      const response = await fetch('/api/vote', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(values),
+      })
+      const data = await response.json()
+      if (data.success) {
+        // Handle successful voting session creation
+        console.log('Voting session created successfully')
+      } else {
+        form.setError('title', { message: 'Failed to create voting session' })
+      }
+    } catch (err: unknown) {
+      form.setError('title', { message: 'An error occurred. Please try again.' + err })
     }
-
-    // For now, just push back to the main /vote dashboard
-    router.push('/vote');
-  };
+  }
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4 max-w-lg">
-      {/* Title */}
-      <div>
-        <label className="block font-semibold mb-1">Title</label>
-        <input
-          type="text"
-          className="border border-gray-300 rounded w-full p-2"
-          value={title}
-          onChange={(e) => setTitle(e.target.value)}
-          required
-        />
-      </div>
-
-      {/* Start Date */}
-      <div>
-        <label className="block font-semibold mb-1">Start Date</label>
-        <input
-          type="date"
-          className="border border-gray-300 rounded w-full p-2"
-          value={startDate}
-          onChange={(e) => setStartDate(e.target.value)}
-          required
-        />
-      </div>
-
-      {/* End Date */}
-      <div>
-        <label className="block font-semibold mb-1">End Date</label>
-        <input
-          type="date"
-          className="border border-gray-300 rounded w-full p-2"
-          value={endDate}
-          onChange={(e) => setEndDate(e.target.value)}
-          required
-        />
-      </div>
-
-      {/* Options */}
-      <div>
-        <label className="block font-semibold mb-1">Voting Options</label>
-        {options.map((option, idx) => (
-          <div key={idx} className="flex gap-2 mb-2">
-            <input
-              type="text"
-              className="border border-gray-300 rounded w-full p-2"
-              value={option}
-              onChange={(e) => handleOptionChange(idx, e.target.value)}
-              required
-            />
-            {options.length > 1 && (
-              <button
-                type="button"
-                className="text-red-600 font-bold"
-                onClick={() => handleRemoveOption(idx)}
-              >
-                X
-              </button>
+    <div className="flex justify-center items-center h-screen bg-gray-100">
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="p-6 rounded-lg bg-white shadow-md space-y-8 w-[350px]">
+          <h2 className="text-2xl mb-4">Create Voting Session</h2>
+          <FormField
+            control={form.control}
+            name="title"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Title</FormLabel>
+                <FormControl>
+                  <Input placeholder="Title" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
             )}
+          />
+          <FormField
+            control={form.control}
+            name="description"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Description (optional)</FormLabel>
+                <FormControl>
+                  <Input placeholder="Description" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="startDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Start Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <FormField
+            control={form.control}
+            name="endDate"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>End Date</FormLabel>
+                <FormControl>
+                  <Input type="date" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div>
+            <FormLabel>Voting Options</FormLabel>
+            {fields.map((field, idx) => (
+              <FormField
+                key={field.id}
+                control={form.control}
+                name={`options.${idx}`}
+                render={({ field }) => (
+                  <FormItem>
+                    <FormControl>
+                      <Input placeholder={`Option ${idx + 1}`} {...field} />
+                    </FormControl>
+                    <FormMessage />
+                    {fields.length > 1 && (
+                      <Button type="button" onClick={() => remove(idx)} className="text-red-600 font-bold">
+                        Remove
+                      </Button>
+                    )}
+                  </FormItem>
+                )}
+              />
+            ))}
+            <Button type="button" onClick={() => append("")} className="bg-blue-500 text-white py-1 px-3 rounded">
+              Add Option
+            </Button>
           </div>
-        ))}
-        <button
-          type="button"
-          onClick={handleAddOption}
-          className="bg-blue-500 text-white py-1 px-3 rounded"
-        >
-          Add Option
-        </button>
-      </div>
-
-      {/* Submit */}
-      <button
-        type="submit"
-        className="bg-green-600 text-white py-2 px-4 rounded font-semibold"
-      >
-        {isNew ? 'Create Session' : 'Save Changes'}
-      </button>
-    </form>
-  );
+          <Button type="submit" className="bg-green-600 text-white py-2 px-4 rounded font-semibold">
+            Create Voting Session
+          </Button>
+        </form>
+      </Form>
+    </div>
+  )
 }
+
+export default VotingSessionForm
