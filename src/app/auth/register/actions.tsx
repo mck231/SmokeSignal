@@ -7,11 +7,12 @@ import { redisClient } from "@/lib/redis"
 export async function createUser(formData: FormData) {
   const firstName = formData.get("firstName")?.toString() || ""
   const lastName = formData.get("lastName")?.toString() || ""
+  const username = formData.get("username")?.toString() || ""
   const emailRaw = formData.get("email")?.toString() // optional
   const passwordRaw = formData.get("password")?.toString() || ""
 
   if (!firstName || !lastName || !passwordRaw) {
-    throw new Error("Missing required fields: firstName, lastName, or password.")
+    throw new Error("Missing required fields: firstName, lastName, username, or password.")
   }
 
   const email = emailRaw || ""
@@ -25,6 +26,7 @@ export async function createUser(formData: FormData) {
   await redisClient.hSet(`user:${userId}`, {
     firstName,
     lastName,
+    username,
     email,
     password: hashedPassword,
   })

@@ -1,6 +1,6 @@
 // app/vote/[sessionId]/settings/page.tsx
 import { notFound } from 'next/navigation';
-import { VotingSessionForm } from '../../components/VotingSessionForm';
+import VotingSessionForm from '../../components/VotingSessionForm';
 
 type VotingSessionRecord = Record<
   string, 
@@ -37,9 +37,6 @@ export default async function VoteSettingsPage({
     <main className="p-4">
       <h1 className="text-2xl font-bold mb-4">Edit Session {session}</h1>
       <VotingSessionForm
-        isNew={false}
-        sessionId={session}
-        initialData={sessionData}
       />
     </main>
   );

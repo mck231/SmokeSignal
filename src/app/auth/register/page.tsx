@@ -22,6 +22,9 @@ const formSchema = z.object({
   lastName: z.string().min(2, {
     message: "Last name must be at least 2 characters.",
   }),
+  userName: z.string().min(2, {
+    message: "User name must be at least 2 characters.",
+  }),
   email: z.string().email({
     message: "Invalid email address.",
   }).optional(),
@@ -31,11 +34,11 @@ const formSchema = z.object({
 })
 
 const RegisterPage: React.FC = () => {
-  const form = useForm<{ firstName: string; lastName: string; email?: string; password: string }>({
+  const form = useForm<{ firstName: string; lastName: string; userName: string; email?: string; password: string }>({
     resolver: zodResolver(formSchema),
   })
 
-  const onSubmit = async (values: { firstName: string; lastName: string; email?: string; password: string }) => {
+  const onSubmit = async (values: { firstName: string; lastName: string; userName: string; email?: string; password: string }) => {
     try {
       const response = await fetch('/api/register', {
         method: 'POST',
@@ -82,6 +85,19 @@ const RegisterPage: React.FC = () => {
                 <FormLabel>Last Name</FormLabel>
                 <FormControl>
                   <Input placeholder="Last Name" {...field} />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+            <FormField
+            control={form.control}
+            name="userName"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>User Name</FormLabel>
+                <FormControl>
+                  <Input placeholder="User Name" {...field} />
                 </FormControl>
                 <FormMessage />
               </FormItem>
