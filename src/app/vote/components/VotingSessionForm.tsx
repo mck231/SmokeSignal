@@ -195,7 +195,7 @@ export default function VotingSessionForm() {
                 control={form.control}
                 name={`options.${idx}.value`}
                 render={({ field }) => (
-                  <FormItem className="m-2">
+                  <FormItem className="mt-2 mb-2">
                     <FormControl>
                       <Input placeholder={`Option ${idx + 1}`} {...field} />
                     </FormControl>
@@ -205,7 +205,7 @@ export default function VotingSessionForm() {
                       <Button
                         type="button"
                         onClick={() => remove(idx)}
-                        className="text-red-600 bg-red-300 font-bold mb-2 mt-2"
+                        className="mb-2 mt-2 bg-red-300 text-black hover:bg-red-500 hover:text-white"
                       >
                         Remove
                       </Button>
@@ -217,7 +217,7 @@ export default function VotingSessionForm() {
             <Button
               type="button"
               onClick={() => append({ value: "" })}
-              className=" mt-2 bg-blue-500 text-white py-1 px-3 rounded"
+              className=" mt-2 bg-blue-300 text-black hover:bg-blue-500 hover:text-white"
             >
               Add Option
             </Button>
@@ -226,7 +226,7 @@ export default function VotingSessionForm() {
           {/* Submit */}
           <Button
             type="submit"
-            className="bg-green-600 text-white py-2 px-4 rounded font-semibold"
+            className="bg-green-300 text-black hover:bg-green-500 hover:text-white"
           >
             Create Voting Session
           </Button>
