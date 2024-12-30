@@ -106,7 +106,7 @@ export default function VotingSessionForm() {
           onSubmit={form.handleSubmit(onSubmit)}
           className="p-6 rounded-lg bg-white shadow-md space-y-6 w-[350px]"
         >
-          <h2 className="text-2xl mb-2">Create Voting Session</h2>
+          <h2 className="text-2xl mb-2">Voting Session Settings</h2>
 
           {/* Title */}
           <FormField
