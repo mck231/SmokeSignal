@@ -9,6 +9,7 @@ export default async function VoteResultsPage({
       <main className="p-6">
         <h1 className="text-2xl font-bold mb-4">Results for Session {session}</h1>
         {/* Show stats, bar charts, or other visualizations for each option */}
+        
       </main>
     );
   }

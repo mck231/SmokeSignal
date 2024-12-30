@@ -5,6 +5,7 @@ import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Cog } from "lucide-react";
+import { redirect } from "next/navigation";
 
 type VotingSession = {
   id: string;
@@ -21,7 +22,8 @@ export function VotingSessionCard({ session }: VotingSessionCardProps) {
   // Handler for Cog icon click
   const handleCogClick = () => {
     // Implement your settings modal or navigation here
-    console.log(`Cog clicked for session: ${session.id}`);
+    // route to the settings page
+    redirect(`/vote/${session.id}/settings`);
     // Example: Open a settings modal
     // setIsModalOpen(true);
   };

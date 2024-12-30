@@ -15,6 +15,12 @@ async function getVotingSession(sessionId: string) {
       endDate: '2025-01-05',
       options: ['Pepperoni', 'Mushroom', 'Pineapple'],
     },
+    '456': {
+      title: 'Favorite Programming Language',
+      startDate: '2025-01-01',
+      endDate: '2025-01-05',
+      options: ['JavaScript', 'Python', 'Rust'],
+    }
   };
 
   return mockDb[sessionId] || null;
