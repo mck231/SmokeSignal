@@ -166,7 +166,28 @@ export default function VotingSessionForm() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent className="w-auto p-0" align="start">
+              <PopoverContent 
+              className={`
+                /* MOBILE (base) styles: full screen */
+                w-screen
+                h-screen
+                top-0
+                left-0
+                rounded-none
+                border-none
+                m-0
+                p-2
+                overflow-y-auto
+                /* DESKTOP (sm) reverts to normal popover */
+                sm:w-auto
+                sm:h-auto
+                sm:rounded-md
+                sm:border
+                sm:shadow-lg
+                sm:transform
+                sm:mt-10
+              `}            
+              align="start">
                 <Calendar
                   initialFocus
                   mode="range"
