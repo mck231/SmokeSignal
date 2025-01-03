@@ -166,17 +166,10 @@ export default function VotingSessionForm() {
                   )}
                 </Button>
               </PopoverTrigger>
-              <PopoverContent 
-              className={`
+                <PopoverContent 
+                className={`
                 /* MOBILE (base) styles: full screen */
-                w-screen
-                h-screen
-                top-0
-                left-0
-                rounded-none
-                border-none
-                m-0
-                p-2
+                top-[150px]
                 overflow-y-auto
                 /* DESKTOP (sm) reverts to normal popover */
                 sm:w-auto
@@ -186,19 +179,19 @@ export default function VotingSessionForm() {
                 sm:shadow-lg
                 sm:transform
                 sm:mt-10
-              `}            
-              align="start">
+                `}            
+                align="start">
                 <Calendar
                   initialFocus
                   mode="range"
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={handleRangeSelect}
-                  numberOfMonths={2}
+                  numberOfMonths={window.innerWidth >= 640 ? 2 : 1}
                   className="bg-white"
                 />
                 <Button className="w-full" onClick={() => handleRangeSelect}>Done</Button>
-              </PopoverContent>
+                </PopoverContent>
             </Popover>
             {/* We won't render these, but if you want to show them for debugging: */}
             <div className="text-sm text-gray-600">
