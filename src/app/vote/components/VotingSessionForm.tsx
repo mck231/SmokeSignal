@@ -21,6 +21,7 @@ import { Calendar } from "@/components/ui/calendar"
 import { CalendarIcon } from "lucide-react"
 import { Textarea } from "@/components/ui/textarea"
 import { DateRange } from "react-day-picker"
+import { useMediaQuery } from 'react-responsive';
 
 // 1) Zod schema with "options" as an array of objects
 //    and "startDate"/"endDate" as strings (we'll store them manually).
@@ -37,6 +38,9 @@ const formSchema = z.object({
 type VotingSessionFormValues = z.infer<typeof formSchema>
 
 export default function VotingSessionForm() {
+
+  const isMobile = useMediaQuery({ query: `(max-width: 760px)` });
+
   // Local state for the date picker
   const [dateRange, setDateRange] = React.useState<DateRange | undefined>({
     from: new Date(2022, 0, 20),
@@ -187,7 +191,7 @@ export default function VotingSessionForm() {
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={handleRangeSelect}
-                  numberOfMonths={window.innerWidth >= 640 ? 2 : 1}
+                  numberOfMonths={isMobile ? 2 : 1}
                   className="bg-white"
                 />
                 <Button className="w-full" onClick={() => handleRangeSelect}>Done</Button>
