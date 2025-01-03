@@ -191,7 +191,7 @@ export default function VotingSessionForm() {
                   defaultMonth={dateRange?.from}
                   selected={dateRange}
                   onSelect={handleRangeSelect}
-                  numberOfMonths={isMobile ? 2 : 1}
+                  numberOfMonths={!isMobile ? 2 : 1}
                   className="bg-white"
                 />
                 <Button className="w-full" onClick={() => handleRangeSelect}>Done</Button>
