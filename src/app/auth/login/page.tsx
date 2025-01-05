@@ -5,6 +5,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { useForm } from 'react-hook-form';
 import { z } from 'zod';
 import { useRouter } from 'next/navigation';
+import { useEffect, useState } from 'react';
 
 import { Button } from '@/components/ui/button';
 import {
@@ -17,7 +18,6 @@ import {
   FormMessage,
 } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import { useState } from 'react';
 
 const formSchema = z.object({
   username: z.string().min(2, {
@@ -33,12 +33,46 @@ type FormData = z.infer<typeof formSchema>;
 const LoginPage: React.FC = () => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(true); // New state for auth check
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      username: '',
+      password: '',
+    },
   });
 
   const { handleSubmit, setError } = form;
+
+  useEffect(() => {
+    // Function to check if the user is already authenticated
+    const checkAuthentication = async () => {
+      try {
+        const response = await fetch('/api/me', {
+          method: 'GET',
+          credentials: 'include', // Include cookies
+          cache: 'no-store',      // Prevent caching to always fetch fresh data
+        });
+
+        if (response.ok) {
+          const data = await response.json();
+          if (data.user) {
+            // User is authenticated, redirect to /vote
+            router.push('/vote');
+          }
+        } else {
+          console.error('Failed to verify authentication status.');
+        }
+      } catch (error) {
+        console.error('Error checking authentication:', error);
+      } finally {
+        setIsCheckingAuth(false); // Auth check complete
+      }
+    };
+
+    checkAuthentication();
+  }, [router]);
 
   const onSubmit = async (values: FormData) => {
     setIsLoading(true);
@@ -54,14 +88,15 @@ const LoginPage: React.FC = () => {
       const data = await response.json();
 
       if (response.ok && data.success) {
-        // Handle successful login (e.g., redirect to dashboard)
+        // Successful login
+        // Optionally, display a success message or toast notification here
         console.warn({
           title: 'Login successful!',
           description: 'Redirecting to your dashboard...',
         });
-        router.push('/dashboard'); // Adjust the path as needed
+        window.location.reload(); // Reload the page to update AuthButtons
       } else {
-        // Handle errors
+        // Handle authentication errors
         setError('username', {
           message: data.message || 'Invalid username or password.',
         });
@@ -70,16 +105,27 @@ const LoginPage: React.FC = () => {
         });
       }
     } catch (error: unknown) {
+      // Handle network or unexpected errors
       setError('username', {
-        message: 'An error occurred. Please try again.+ ' + String(error),
+        message: 'An error occurred. Please try again.',
       });
       setError('password', {
         message: 'An error occurred. Please try again.',
       });
+      console.error('Login Error:', error);
     } finally {
       setIsLoading(false);
     }
   };
+
+  if (isCheckingAuth) {
+    // Optionally, display a loading spinner while checking authentication
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <div className="flex justify-center items-center min-h-screen bg-gray-100">

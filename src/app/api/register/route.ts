@@ -3,6 +3,7 @@ import { NextResponse } from 'next/server';
 import bcrypt from 'bcryptjs';
 import { z } from 'zod';
 import { redisClient } from '@/lib/redis';
+import { v4 as uuidv4 } from 'uuid'; // Install UUID for better userId generation
 
 // Define the expected request body using Zod
 const registerSchema = z.object({
@@ -20,17 +21,28 @@ export async function POST(request: Request) {
     // Validate the incoming data
     const parsedData = registerSchema.safeParse(body);
     if (!parsedData.success) {
+      console.log('Registration validation failed:', parsedData.error.errors);
       return NextResponse.json(
         { success: false, errors: parsedData.error.errors },
         { status: 400 }
       );
     }
 
-    const { firstName, lastName, username, email, password } = parsedData.data;
 
-    // Check if the username already exists
-    const existingUser = await redisClient.hGetAll(`user:username:${username}`);
-    if (existingUser && Object.keys(existingUser).length > 0) {
+    let {  username, email } = parsedData.data;
+    const { firstName, lastName, password} = parsedData.data;
+    // Normalize username to lowercase to prevent case-sensitive issues
+    username = username.trim().toLowerCase();
+
+    // Normalize email if provided
+    if (email) {
+      email = email.trim().toLowerCase();
+    }
+
+    // Check if the username already exists using 'get' instead of 'hGetAll'
+    const existingUser = await redisClient.get(`user:username:${username}`);
+    if (existingUser) {
+      console.log('Username already exists:', username);
       return NextResponse.json(
         { success: false, message: 'Username already exists.' },
         { status: 409 }
@@ -40,8 +52,10 @@ export async function POST(request: Request) {
     // Hash the password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Generate a unique user ID (you might want to use a more robust method)
-    const userId = `user:${Date.now()}`;
+    // Generate a unique user ID using UUID
+    const userId = uuidv4(); // No 'user:' prefix
+
+    console.log(`Generated userId: ${userId}`);
 
     // Store user data in Redis
     await redisClient.hSet(`user:${userId}`, {
@@ -52,8 +66,12 @@ export async function POST(request: Request) {
       password: hashedPassword,
     });
 
-    // Also map username to userId for quick lookup during login
+    console.log(`Stored user data in Redis under key: user:${userId}`);
+
+    // Map username to userId for quick lookup during login
     await redisClient.set(`user:username:${username}`, userId);
+
+    console.log(`Mapped username '${username}' to userId '${userId}'`);
 
     return NextResponse.json({ success: true, userId }, { status: 201 });
   } catch (error) {
@@ -64,3 +82,4 @@ export async function POST(request: Request) {
     );
   }
 }
+

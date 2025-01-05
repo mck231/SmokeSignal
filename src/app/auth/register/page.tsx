@@ -48,6 +48,13 @@ const RegisterPage: React.FC = () => {
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
+    defaultValues: {
+      firstName: '',
+      lastName: '',
+      username: '',
+      email: '',
+      password: '',
+    },
   });
 
   const { handleSubmit, setError } = form;
@@ -131,7 +138,7 @@ const RegisterPage: React.FC = () => {
           />
           <FormField
             control={form.control}
-            name="username"
+            name="username" // Changed from 'userName' to 'username'
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Username</FormLabel>

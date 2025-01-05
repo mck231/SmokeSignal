@@ -17,17 +17,17 @@ export async function POST(request: Request) {
     const sessionId = cookies['sessionId'];
 
     if (sessionId) {
-      // Delete session from Redis
-      await redisClient.del(sessionId);
+      // Delete session data from Redis
+      await redisClient.del(`session:${sessionId}`);
     }
 
-    // Clear the cookie
-    const cookie = serialize('sessionId', '', {
+    // Clear the sessionId cookie
+    const clearedCookie = serialize('sessionId', '', {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',
       sameSite: 'strict',
       path: '/',
-      expires: new Date(0),
+      expires: new Date(0), // Set expiration to past date
     });
 
     return new NextResponse(
@@ -35,7 +35,7 @@ export async function POST(request: Request) {
       {
         status: 200,
         headers: {
-          'Set-Cookie': cookie,
+          'Set-Cookie': clearedCookie,
           'Content-Type': 'application/json',
         },
       }
