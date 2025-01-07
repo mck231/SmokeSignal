@@ -1,16 +1,22 @@
 // app/vote/VotingSessionCard.tsx
+
 "use client";
 
 import React from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Cog } from "lucide-react";
-import { redirect } from "next/navigation";
+import { useRouter } from "next/navigation";
 
 type VotingSession = {
   id: string;
   title: string;
+  description: string;
+  startTime: string;
+  endTime: string;
   status: "ongoing" | "ended";
+  slideIds: string[];
+  assignedGroupIds: string[];
   createdAt: string;
 };
 
@@ -19,13 +25,12 @@ interface VotingSessionCardProps {
 }
 
 export function VotingSessionCard({ session }: VotingSessionCardProps) {
+  const router = useRouter();
+
   // Handler for Cog icon click
   const handleCogClick = () => {
-    // Implement your settings modal or navigation here
-    // route to the settings page
-    redirect(`/vote/${session.id}/settings`);
-    // Example: Open a settings modal
-    // setIsModalOpen(true);
+    // Navigate to the settings page
+    router.push(`/vote/${session.id}/settings`);
   };
 
   return (

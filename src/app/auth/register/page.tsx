@@ -19,6 +19,7 @@ import {
 import { Input } from '@/components/ui/input';
 import { useState } from 'react';
 
+// Define the Zod schema
 const formSchema = z.object({
   firstName: z.string().min(2, {
     message: 'First name must be at least 2 characters.',
@@ -74,7 +75,7 @@ const RegisterPage: React.FC = () => {
 
       if (response.ok && data.success) {
         // Handle successful registration (e.g., redirect to login)
-        console.warn({
+        console.log({
           title: 'Registration successful!',
           description: 'You can now log in with your credentials.',
         });
@@ -82,15 +83,27 @@ const RegisterPage: React.FC = () => {
       } else {
         // Handle errors
         if (data.errors) {
-          //data.errors.forEach((err: unknown) => {
-            //setError(err.path as keyof FormData, { message: err.message });
-          //});
+          data.errors.forEach((err: unknown) => {
+            if (typeof err === 'object' && err !== null && 'path' in err && 'message' in err) {
+              setError(err.path as keyof FormData, { message: (err as { message: string }).message });
+            }
+          });
+        } else if (data.message) {
+          // Handle specific error messages
+          if (data.message.includes('Username')) {
+            setError('username', { message: data.message });
+          } else if (data.message.includes('Email')) {
+            setError('email', { message: data.message });
+          } else {
+            setError('username', { message: data.message });
+          }
         } else {
-          setError('username', { message: data.message || 'Registration failed.' });
+          setError('username', { message: 'Registration failed.' });
         }
       }
     } catch (error: unknown) {
-      setError('username', { message: 'An error occurred. Please try again.' + String(error) });
+      setError('username', { message: 'An error occurred. Please try again.' });
+      console.error('Registration Error:', error);
     } finally {
       setIsLoading(false);
     }
@@ -138,7 +151,7 @@ const RegisterPage: React.FC = () => {
           />
           <FormField
             control={form.control}
-            name="username" // Changed from 'userName' to 'username'
+            name="username" // Ensure consistent naming
             render={({ field }) => (
               <FormItem>
                 <FormLabel>Username</FormLabel>

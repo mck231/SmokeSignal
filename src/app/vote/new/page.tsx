@@ -2,8 +2,6 @@
 
 import VotingSessionForm from "../components/VotingSessionForm";
 
-
-
 export default function NewVotingSessionPage() {
   return (
     <main className="p-4">

@@ -1,33 +1,30 @@
 // app/vote/page.tsx
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { VotingSessionCard } from "./VotingSessionCard"; // Import the Client Component
+import { VotingSession } from "@/types"; // Import the VotingSession type
 
-type VotingSession = {
-  id: string;
-  title: string;
-  status: "ongoing" | "ended";
-  createdAt: string;
-};
-
-// Simulated data-fetching function
 async function getAllVotingSessions(): Promise<VotingSession[]> {
-  // Replace this with your actual data-fetching logic, e.g., fetching from an API or database
-  return [
-    {
-      id: "123",
-      title: "Best Pizza Topping",
-      status: "ongoing",
-      createdAt: "2024-01-01",
-    },
-    {
-      id: "456",
-      title: "Favorite Programming Language",
-      status: "ended",
-      createdAt: "2024-01-02",
-    },
-    // Add more sessions as needed
-  ];
+  console.log('API_BASE_URL:', process.env);
+  console.log('API_BASE_URL:', process.env.API_BASE_URL);
+  console.log('TEST_SERVER_VAR:', process);
+  const baseUrl = process.env.__NEXT_PRIVATE_ORIGIN;
+  if (!baseUrl) {
+    throw new Error('API_BASE_URL is not defined');
+  }
+
+  const res = await fetch(`${baseUrl}/api/getAllSessions`, {
+    cache: 'no-store',
+  });
+
+  if (!res.ok) {
+    const errorData = await res.json();
+    throw new Error(errorData.message || 'Failed to fetch voting sessions');
+  }
+
+  const data = await res.json();
+  return data.data || [];
 }
 
 export default async function VoteDashboardPage() {
