@@ -18,9 +18,9 @@ import {
 import { Input } from "@/components/ui/input";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
-import { VotingSession, Vote } from "@/types"; // Import the VotingSession and Vote types
+import { Vote, VotingSession } from "@/types"; // Import the VotingSession type
 
-// Define the Zod schema
+// Define the Zod schema without slideIds
 const sessionSchema = z.object({
   title: z.string().min(5, { message: "Title must be at least 5 characters." }),
   description: z.string().min(10, { message: "Description must be at least 10 characters." }),
@@ -31,29 +31,28 @@ const sessionSchema = z.object({
     message: "Invalid end time.",
   }),
   assignedGroupIds: z.array(z.string()).optional(),
-  slideIds: z.string().min(1, { message: "At least one slide ID is required." }), // String for comma-separated input
 });
 
 type SessionFormData = z.infer<typeof sessionSchema>;
 
 interface VotingSessionFormProps {
-  session?: VotingSession;
-  slides?: string[];
-  votes?: Vote[];
+  session: VotingSession; // Ensure it's not optional
+  slides: string[];
+  votes: Vote[]; 
 }
 
-const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session }) => {
+const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session, slides, votes }) => {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
 
   const defaultValues: SessionFormData = {
-    title: session?.title || "",
-    description: session?.description || "",
-    startTime: session?.startTime || "",
-    endTime: session?.endTime || "",
-    assignedGroupIds: session?.assignedGroupIds || [],
-    slideIds: session?.slideIds.join(", ") || "", // Corrected transformation
+    title: session.title || "",
+    description: session.description || "",
+    startTime: session.startTime || "",
+    endTime: session.endTime || "",
+    assignedGroupIds: session.assignedGroupIds || [],
   };
+  console.warn(slides, votes);
 
   const form = useForm<SessionFormData>({
     resolver: zodResolver(sessionSchema),
@@ -65,16 +64,13 @@ const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session }) => {
   const onSubmit = async (values: SessionFormData) => {
     setIsLoading(true);
     try {
-      // Convert comma-separated slide IDs into an array
-      const slideIdsArray = values.slideIds
-        .split(",")
-        .map((id) => id.trim())
-        .filter((id) => id.length > 0);
-
-      // Prepare the payload
+      // Prepare the payload without serializing assignedGroupIds
       const payload = {
-        ...values,
-        slideIds: slideIdsArray,
+        title: values.title,
+        description: values.description,
+        startTime: values.startTime,
+        endTime: values.endTime,
+        assignedGroupIds: values.assignedGroupIds || [],
       };
 
       // Determine if it's a create or update operation
@@ -88,7 +84,7 @@ const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session }) => {
         headers: {
           "Content-Type": "application/json",
         },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(payload), // Send payload as JSON with array
       });
 
       const data = await response.json();
@@ -98,7 +94,7 @@ const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session }) => {
           title: "Session saved successfully!",
           description: "Redirecting to the session page...",
         });
-        const sessionId = data.sessionId || session?.id;
+        const sessionId = data.sessionId || session.id;
         router.push(`/vote/${sessionId}`);
       } else {
         // Handle errors
@@ -216,25 +212,6 @@ const VotingSessionForm: React.FC<VotingSessionFormProps> = ({ session }) => {
             )}
           />
           */}
-          <FormField
-            control={form.control}
-            name="slideIds"
-            render={({ field }) => (
-              <FormItem>
-                <FormLabel>Slide IDs</FormLabel>
-                <FormControl>
-                  <Input
-                    placeholder="Comma-separated Slide IDs (e.g., slide1, slide2)"
-                    {...field}
-                  />
-                </FormControl>
-                <FormDescription>
-                  Enter slide IDs separated by commas.
-                </FormDescription>
-                <FormMessage />
-              </FormItem>
-            )}
-          />
           <Button type="submit" disabled={isLoading}>
             {isLoading
               ? session

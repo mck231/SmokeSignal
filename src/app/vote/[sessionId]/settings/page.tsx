@@ -10,6 +10,15 @@ type VotingSessionData = {
   votes: Vote[]; // Properly typed votes
 };
 
+interface VoteSettingsPageProps {
+  params: {
+    sessionId: string;
+  };
+  searchParams?: {
+    [key: string]: string | string[] | undefined;
+  };
+}
+
 // Data-fetching function to get a specific session
 async function getVotingSession(sessionId: string): Promise<VotingSessionData | null> {
   const res = await fetch(`${process.env.NEXT_PUBLIC_BASE_URL}/api/getSession/${sessionId}`, {
@@ -33,10 +42,11 @@ async function getVotingSession(sessionId: string): Promise<VotingSessionData | 
   return null;
 }
 
-export default async function VoteSettingsPage({ params }: { params: { sessionId: string } }) {
+export default async function VoteSettingsPage({ params, searchParams }: VoteSettingsPageProps) {
   const { sessionId } = params;
+  const { action } = searchParams || {};
   const sessionData = await getVotingSession(sessionId);
-
+  console.warn(action);
   if (!sessionData) {
     notFound(); // Triggers Next.js 404 page
   }

@@ -6,12 +6,11 @@ export interface VotingSession {
   id: string;
   title: string;
   description: string;
-  startTime: string; // ISO date string
-  endTime: string;   // ISO date string
-  status: VotingSessionStatus;
-  slideIds: string[];
+  startTime: string; // or Date, based on your preference
+  endTime: string;   // or Date
   assignedGroupIds: string[];
-  createdAt: string; // ISO date string
+  createdAt: string;
+  slideIds: string[];
 }
 
 // Optional: Define related types if needed

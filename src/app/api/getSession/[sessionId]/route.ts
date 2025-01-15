@@ -1,6 +1,6 @@
 // app/api/getSession/[sessionId]/route.ts
 
-import { NextResponse } from 'next/server';
+import { NextResponse, NextRequest } from 'next/server';
 import { redisClient } from '@/lib/redis';
 import { z } from 'zod';
 
@@ -17,14 +17,11 @@ const sessionDetailSchema = z.object({
   createdAt: z.string(),
 });
 
-export async function GET(
-  request: Request,
-  { params }: { params: { sessionId: string } }
-) {
-  const { sessionId } = params;
+export async function GET(request: NextRequest) {
+  const sessionId = request.nextUrl.searchParams.get('sessionId') || '';
 
   try {
-    const sessionKey = `session:${sessionId}`;
+    const sessionKey = `session:${sessionId}`; // Correctly use backticks
     const sessionData = await redisClient.hGetAll(sessionKey);
 
     if (Object.keys(sessionData).length === 0) {
@@ -42,10 +39,10 @@ export async function GET(
       description: sessionData.description,
       startTime: sessionData.startTime,
       endTime: sessionData.endTime,
-      status: sessionData.status,
-      slideIds: sessionData.slideIds ? sessionData.slideIds.split(',') : [],
+      status: sessionData.status as "ongoing" | "ended", // Ensure type correctness
+      slideIds: sessionData.slideIds ? JSON.parse(sessionData.slideIds) : [],
       assignedGroupIds: sessionData.assignedGroupIds
-        ? sessionData.assignedGroupIds.split(',')
+        ? JSON.parse(sessionData.assignedGroupIds)
         : [],
       createdAt: sessionData.createdAt,
     });

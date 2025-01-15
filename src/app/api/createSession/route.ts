@@ -1,76 +1,55 @@
 // app/api/createSession/route.ts
 
-import { NextResponse } from 'next/server';
 import { redisClient } from '@/lib/redis';
-import { ensureDefaultGroupExists, ensureGroupsExist } from '@/lib/groupUtils';
-import { v4 as uuidv4 } from 'uuid';
-import { DEFAULT_GROUP_ID } from '@/config/defaultGroup';
-
-// Define the expected request body using Zod
+import { NextResponse } from 'next/server';
 import { z } from 'zod';
 
+// Define the expected payload using Zod
 const sessionSchema = z.object({
-  title: z.string().min(5, { message: 'Title must be at least 5 characters.' }),
-  description: z.string().min(10, { message: 'Description must be at least 10 characters.' }),
+  title: z.string().min(5, { message: "Title must be at least 5 characters." }),
+  description: z.string().min(10, { message: "Description must be at least 10 characters." }),
   startTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Invalid start time.',
+    message: "Invalid start time.",
   }),
   endTime: z.string().refine((val) => !isNaN(Date.parse(val)), {
-    message: 'Invalid end time.',
+    message: "Invalid end time.",
   }),
   assignedGroupIds: z.array(z.string()).optional(),
-  slideIds: z.array(z.string()).min(1, { message: 'At least one slide is required.' }),
 });
 
 export async function POST(request: Request) {
   try {
     const body = await request.json();
+    const parsed = sessionSchema.safeParse(body);
 
-    // Validate the incoming data
-    const parsedData = sessionSchema.safeParse(body);
-    if (!parsedData.success) {
-      console.log('Session creation validation failed:', parsedData.error.errors);
-      return NextResponse.json(
-        { success: false, errors: parsedData.error.errors },
-        { status: 400 }
-      );
+    if (!parsed.success) {
+      return NextResponse.json({ success: false, errors: parsed.error.errors }, { status: 400 });
     }
 
-    const { title, description, startTime, endTime, assignedGroupIds, slideIds } = parsedData.data;
-
-    // Ensure the default group exists
-    await ensureDefaultGroupExists();
-
-    // Ensure all assigned groups exist
-    if (assignedGroupIds && assignedGroupIds.length > 0) {
-      await ensureGroupsExist(assignedGroupIds);
-    }
-
-    // Generate a unique session ID
-    const sessionId = uuidv4();
-
-    // Store the voting session in Redis
-    await redisClient.hSet(`session:${sessionId}`, {
-      title,
-      description,
-      startTime,
-      endTime,
-      status: 'upcoming',
-      slideIds: slideIds.join(','),
-      assignedGroupIds: assignedGroupIds ? assignedGroupIds.join(',') : DEFAULT_GROUP_ID,
+    const sessionData = {
+      ...parsed.data,
+      id: crypto.randomUUID(), // Generate a unique ID for the session
       createdAt: new Date().toISOString(),
-    });
+      slideIds: [], // Initialize with an empty array since slides are managed separately
+    };
 
-    // Initialize associated keys
-    await redisClient.rPush(`session:${sessionId}:slides`, slideIds);
-    await redisClient.lPush(`session:${sessionId}:votes`, JSON.stringify([])); // Initialize votes list
+    // Serialize assignedGroupIds as JSON string if present
+    const payload: Record<string, string> = {
+      title: sessionData.title,
+      description: sessionData.description,
+      startTime: sessionData.startTime,
+      endTime: sessionData.endTime,
+      assignedGroupIds: sessionData.assignedGroupIds ? JSON.stringify(sessionData.assignedGroupIds) : '',
+      createdAt: sessionData.createdAt,
+      slideIds: JSON.stringify(sessionData.slideIds), // Serialize slideIds as JSON string
+    };
 
-    return NextResponse.json({ success: true, sessionId }, { status: 201 });
+    // Store the session in Redis (assuming you store sessions as hashes)
+    await redisClient.hSet(`session:${sessionData.id}`, payload);
+
+    return NextResponse.json({ success: true, sessionId: sessionData.id }, { status: 201 });
   } catch (error) {
-    console.error('Error creating voting session:', error);
-    return NextResponse.json(
-      { success: false, message: 'Internal Server Error' },
-      { status: 500 }
-    );
+    console.error("Error creating session:", error);
+    return NextResponse.json({ success: false, message: "Internal Server Error" }, { status: 500 });
   }
 }

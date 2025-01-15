@@ -8,16 +8,43 @@ import { Button } from "@/components/ui/button";
 import { Cog } from "lucide-react";
 import { useRouter } from "next/navigation";
 
+import { useEffect, useState } from "react";
+
+const calculateStatus = (startTime: string, endTime: string): "ongoing" | "ended" => {
+  const now = new Date();
+  const start = new Date(startTime);
+  const end = new Date(endTime);
+
+  if (now >= start && now <= end) {
+    return "ongoing";
+  } else {
+    return "ended";
+  }
+};
+
 type VotingSession = {
   id: string;
   title: string;
   description: string;
   startTime: string;
   endTime: string;
-  status: "ongoing" | "ended";
   slideIds: string[];
   assignedGroupIds: string[];
   createdAt: string;
+};
+
+const useSessionStatus = (startTime: string, endTime: string) => {
+  const [status, setStatus] = useState<"ongoing" | "ended">(calculateStatus(startTime, endTime));
+
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setStatus(calculateStatus(startTime, endTime));
+    }, 60000); // Update status every minute
+
+    return () => clearInterval(interval);
+  }, [startTime, endTime]);
+
+  return status;
 };
 
 interface VotingSessionCardProps {
@@ -58,7 +85,7 @@ export function VotingSessionCard({ session }: VotingSessionCardProps) {
 
       {/* Session Details */}
       <div className="mt-2">
-        <p className="text-sm text-gray-600">Status: {session.status}</p>
+        <p className="text-sm text-gray-600">Status: { useSessionStatus(session.startTime, session.endTime) }</p>
         <p className="text-sm text-gray-600">
           Created At: {new Date(session.createdAt).toLocaleDateString()}
         </p>
